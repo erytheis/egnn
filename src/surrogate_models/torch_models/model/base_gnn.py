@@ -1,0 +1,169 @@
+from abc import abstractmethod
+
+import torch
+import torch.nn.modules.activation as activations
+
+import numpy as np
+import torch.nn as nn
+from torch import Tensor
+from torch.nn import LeakyReLU, Dropout, Identity
+from torch_geometric.nn import Linear, MessagePassing
+from torch_geometric.typing import OptTensor, Adj
+
+
+
+
+class DummyModel(nn.Module):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.linear = nn.Linear(1, 1)
+
+    def forward(self, batch, *args, **kwargs):
+        return {'edge_attr': batch.y.unsqueeze(-1)}
+
+
+class BaseGNN(nn.Module):
+    """
+    Base class for all models
+    """
+
+    @abstractmethod
+    def forward(self, *inputs):
+        """
+        Forward pass logic
+
+        :return: Model output
+        """
+        raise NotImplementedError
+
+    def __str__(self):
+        """
+        Model prints with number of trainable parameters
+        """
+        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
+        params = sum([np.prod(p.size()) for p in model_parameters])
+        return super().__str__() + '\nTrainable parameters: {}'.format(params)
+
+    """
+    These are functions for the layer inspector. They call the functions of the same name in the super class.
+    layer_id is used for logging purposes
+    """
+
+    # @watch_variable
+    def _norms(self, layer_id, x, batch=None):
+        if self.norms is not None:
+            x = self.norms[layer_id](x, batch)
+        return x
+
+    # @watch_variable
+    def _act(self, layer_id, x):
+        return self.act(x) if self.act is not None else x
+
+    # @watch_variable
+    def _act_out(self, layer_id, x):
+        return torch.sigmoid(x) if self.act_out else x
+
+    # @watch_variable
+    def _lin_out(self, layer_id, x):
+        return self.lin_out(x)
+
+    # @watch_variable
+    def _convs(self, layer_id, x, *args, **kwargs):
+        if self.convs is None:
+            return 0.
+        if self.static_layers:
+            conv = self.convs[-1]
+        else:
+            conv = self.convs[layer_id]
+        return conv(x, *args, **kwargs)
+
+    # @watch_variable
+    def _skip_connection(self, layer_id, x, x_new, gating=0, x_init=None):
+        if self.alpha is None and not hasattr(self, 'gatings') and (x_init is None or self.alpha_init is None):
+            return x_new
+
+        if self.alpha_init is not None and x_init is not None:
+            x = x * (1 - self.alpha_init) + x_init * self.alpha_init
+
+        if self.alpha is not None:
+            x = x * (1 - gating) + self.alpha * x_new
+
+        return x
+
+    def _beta(self, layer_id, x, x_init):
+        return x + x_init * self.beta
+
+    def inspect(self, *args):
+        if hasattr(self, 'layer_inspector'):
+            self.layer_inspector.active = True
+            self.layer_inspector.functions_to_plot = args
+
+
+import types
+
+
+def get_mlp_layer(depth, in_channels, hidden_channels, out_channels=None, act=None,
+                  weight_initializer='glorot', dropout=0.0, bias= True, embedding_act_out= False,
+                  **args):
+    if args is None:
+        args = {}
+    args['weight_initializer'] = weight_initializer
+
+    if act is None:
+        act = LeakyReLU(negative_slope=0.2)
+
+    if out_channels is None:
+        out_channels = hidden_channels
+
+    layers = []
+    for i in range(depth):
+        if i == 0:
+            layers.append(Linear(in_channels, hidden_channels, **args, bias=bias))
+        elif i == depth - 1:
+            layers.append(Linear(hidden_channels, out_channels, **args, bias=bias))
+        else:
+            layers.append(Linear(hidden_channels, hidden_channels, **args, bias=bias))
+        if i < depth - 1 or embedding_act_out:
+            layers.append(act)
+        layers.append(Dropout(dropout))
+    module_list = ModuleList(layers)
+    return module_list
+
+
+def get_activation(act):
+    if act is None:
+        return None
+    if act == 'LeakyReLU':
+        return LeakyReLU(negative_slope=0.2)
+    if act == 'Identity':
+        return Identity()
+    if isinstance(act, str):
+        return getattr(activations, act)()
+
+
+class ModuleList(torch.nn.ModuleList):
+
+    def forward(self, x):
+        for l in self:
+            x = l(x)
+        return x
+
+    def reset_parameters(self):
+        for l in self:
+            if hasattr(l, 'reset_parameters'):
+                l.reset_parameters()
+
+
+class WeightAggregation(MessagePassing):
+    def __init__(self, aggr='add', **kwargs):
+        super(WeightAggregation, self).__init__(aggr=aggr, **kwargs)
+
+    def message(self, x_j, edge_weight: OptTensor):
+        return edge_weight + x_j
+
+    def forward(self, edge_index: Adj, x: OptTensor = None,
+                edge_weight: OptTensor = None,
+                size=None,
+                ) -> Tensor:
+        """"""
+        return self.propagate(edge_index, x=x, edge_weight=edge_weight, size=size)

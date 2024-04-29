@@ -1,0 +1,21 @@
+program: src/surrogate_models/torch_models/train.py
+method: bayes
+metric:
+  goal: minimize
+  name: val/mae/combined
+parameters:
+  arch.args.alpha:
+    values: [0.1 , 0.5, 1]
+  arch.args.skip_connection:
+    values: [true, false]
+  arch.args.hidden_channels:
+    values: [16, 32,  128]
+  arch.args.num_layers:
+    values: [5, 10, 15, 25]
+  trainer.epochs:
+    value: 300
+early_terminate:
+  type: hyperband
+  s: 2
+  eta: 3
+  max_iter: 100

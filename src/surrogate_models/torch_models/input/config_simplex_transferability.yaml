@@ -1,0 +1,119 @@
+arch:
+  args:
+    edge:
+      act: Tanh
+      alpha: 0.1
+      conv_kwargs:
+        bias: false
+        type: SimplicialLayer
+      embedding_act: LeakyReLU
+      embedding_bias: true
+      embedding_channels: 10
+      embedding_layers: 2
+      hidden_channels: 10
+      in_channels: 3
+      out_channels: 1
+    num_layers: 55
+  type: SimplicialCN
+dataset:
+  args:
+    cache_transformed: true
+    reload_data: false
+    skip_features:
+      - flowrate_scaled
+  pre_transforms:
+    - args:
+        log: true
+        log_base: 10
+        remove_original: true
+      type: HazenWilliamsWeights
+    - args:
+        columns:
+        - loss_coefficient
+      combined: true
+      type: MinMaxNormalize
+  subsets:
+    - args:
+        root: saved/simulations/wntr/net-3/3000_net-3_modified_topology_skeletonized_new
+      type: WDSGNNDataset
+      validation_only: true
+  transforms:
+    - args:
+        extend_dimensions: true
+        fully_connected: false
+      type: VirtualSink
+    - args:
+        columns:
+          - flowrate
+      type: RandomFlipEdges
+    - args:
+        iterative_smoothing_coefficient: 0
+        release_ends_of_virtual_edges: true
+        normalized: false
+      type: ToSimplexData
+    - args:
+        attribute_key: edge_attr
+        mask_value: 0
+        reference_key: virtual
+        reference_value: 0
+        target_key: flowrate
+      type: Mask
+    - args:
+        columns:
+        - flowrate
+        value: 10
+      type: Scale
+debug: false
+device: cuda:1
+inspect: false
+loader:
+  args:
+    batch_size: 1000
+    num_workers: 0
+    shuffle: true
+    test_split: 0.1
+    validation_split: 0.1
+  type: BaseGNNDataLoader
+loss:
+- args:
+    epsilon: 0.01
+    virtual_idx: -1
+    weight: 10
+    weighting_key: loss_coefficient
+  type: WeightedEdgeMSELoss
+metrics:
+- mae
+- r2
+n_gpu: 1
+name: SimplicialNet
+optimizer:
+  args:
+    lr: 0.005
+  reset: true
+  type: Adam
+seed: 90342
+trainer:
+  args:
+    cache_clear_period: 100
+    clip: 0.01
+    early_stop: 30000
+    epochs: 100000
+    monitor: min val/loss
+    plot_period: 100
+    save: true
+    save_dir: saved/training_logs
+    save_period: 250
+    tensorboard: true
+    inverse_transform: True
+      #    inverse_transform_train: True
+    reconstruct_pressures: True
+    validation_period: 20
+    verbosity: 2
+    y_dim:
+    - 1
+    - 0
+  type: WDSSimplexTrainer
+writer:
+  args:
+    enabled: true
+  type: WandBWriter

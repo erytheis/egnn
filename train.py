@@ -25,18 +25,14 @@ if __name__ == '__main__':
     lt.monkey_patch()
     torch.cuda.empty_cache()
     torch.autograd.set_detect_anomaly(True)
-    SEED = 90342  # good seed for BAK
-    # SEED = 11111
+    SEED = 90342
 
     # parse config
     args = load_args(
         'config_simplex_transferability.yaml',
         # resume =  'saved/training_logs/models/SimplicialNet/0423_140224/checkpoint-epoch0-loss0.0000.pth',
-        # None,
-        # 'saved/training_logs/models/SequentialSimplicial/0415_152400/checkpoint-epoch2000-loss0.2784.pth'
     )
-    # resume='saved/training_logs/models/GNN/0331_130922/checkpoint-epoch9000-loss0.0035.pth')
-    # resume='saved/training_logs/models/GNN/0326_011800/model_best.pth')
+
     options = load_cli_options()
     config = ConfigParser.from_args(args, options)
 
@@ -61,13 +57,6 @@ if __name__ == '__main__':
             dummy_out = model.forward(dummy_batch.to(device))
             break
     logger.info(model)
-
-    import networkx as nx
-    from torch_geometric.utils import to_networkx
-
-    G = to_networkx(dataset[0])
-    G = nx.Graph(G)
-    print('network_diameter:', nx.diameter(G))
 
     # prepare for (multi-device) GPU training
     if len(device_ids) > 1:
@@ -98,6 +87,5 @@ if __name__ == '__main__':
                                   data_loader=data_loader,
                                   valid_data_loader=valid_data_loader,
                                   lr_scheduler=lr_scheduler)
-    # experiments.epochs = 60000
     if not config['debug']:
         experiments.run()

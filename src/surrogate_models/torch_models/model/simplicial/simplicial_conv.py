@@ -164,8 +164,6 @@ class CochainNetwork(torch_geometric.nn.models.basic_gnn.BasicGNN, BaseGNN):
     def encode(self, x: Tensor, batch=None, *args, **kwargs) -> Tensor:
         """"""
 
-        xs: List[Tensor] = []
-
         x = self._embedding(0, x, batch=batch, *args, **kwargs)
 
         x = F.dropout(x, p=self.dropout, training=self.training)
@@ -191,7 +189,7 @@ class CochainNetwork(torch_geometric.nn.models.basic_gnn.BasicGNN, BaseGNN):
 
         return x_new
 
-    def decode(self, layer_id, x, x_init=None):
+    def decode(self,  x):
         """
         Decode the latent representation to the ouuput space
         :param x:

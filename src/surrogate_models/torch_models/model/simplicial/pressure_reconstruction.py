@@ -1,4 +1,4 @@
-import time
+
 from typing import List, Optional
 
 import torch
@@ -240,7 +240,6 @@ def from_flowrates_to_heads(batch, output_, node_sensor_idx=3, **kwargs):
 
         # get true values
         heads = batch_.x[:, 1]
-        dH_true = heads[batch_.edge_index[1]] - heads[batch_.edge_index[0]]
 
         # derive node-prediction
         node_prediction = get_heads_from_flowrates_linalg(batch_, output, dH_predicted, node_sensor_idx,

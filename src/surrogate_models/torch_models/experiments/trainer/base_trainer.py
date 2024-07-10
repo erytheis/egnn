@@ -1,12 +1,11 @@
-import torch
 from abc import abstractmethod
+
 import numpy as np
-from line_profiler_pycharm import profile
+import torch
 
 from src.surrogate_models.torch_models.base.base_experiment import BaseTorchExperiment
 # from src.utils.torch_utils import inf_loop
 from src.surrogate_models.torch_models.logger import setup_logging
-from src.utils.torch_utils import inf_loop
 from src.utils.utils import get_abs_path
 
 

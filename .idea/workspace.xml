@@ -2,9 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c1370b5a-96a3-458c-86f8-58101d8c3120" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/base_gnn_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/base_gnn_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/wds_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/wds_dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/experiments/trainer/base_trainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/experiments/trainer/base_trainer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/pressure_reconstruction.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/pressure_reconstruction.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/simplicial_conv.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/simplicial_conv.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/visualization/writer/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/visualization/writer/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/visualization/writer/writers.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/visualization/writer/writers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,6 +62,9 @@
       <module name="egnn" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -88,6 +95,7 @@
       <option name="presentableId" value="Default" />
       <updated>1720622785478</updated>
       <workItem from="1720622786807" duration="7095000" />
+      <workItem from="1720636467933" duration="936000" />
     </task>
     <servers />
   </component>

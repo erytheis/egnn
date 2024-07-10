@@ -7,19 +7,16 @@ from os.path import join
 import numpy as np
 import pandas as pd
 import torch
-import torch_geometric.utils
 from line_profiler_pycharm import profile
 from torch import Tensor
 from torch_geometric.data import InMemoryDataset, Data
 from torch_geometric.data.dataset import IndexType
 from torch_geometric.io.tu import cat
 
-from src.simulators.wntr_simulator import EpanetDummySimulator
 from src.surrogate_models.torch_models.data.data import GraphData
 from typing import Optional, Callable, List, Union, Mapping
 
 from src.surrogate_models.torch_models.dataset.base_gnn_dataset import BaseGNNDataset, process_signals
-from src.utils.torch.torch_utils import random_choices
 from src.utils.utils import get_abs_path, read_json, read_yaml
 from src.utils.wds_utils import get_hydraulic_resistance
 
@@ -237,16 +234,6 @@ class WDSGNNDataset(InMemoryDataset, BaseGNNDataset):
                 new_data[key] = self.data[key]
         self.data = new_data
         self.slices = new_slices
-
-    def get_water_network(self):
-        """
-        Returns wntr object of the original water model
-        :return:
-        """
-        return EpanetDummySimulator(epanet_filename=self.inp_filename)
-
-
-
 
 
 def read_wds_data(folder,

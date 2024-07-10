@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/wds-gnn-deployment.iml" filepath="$PROJECT_DIR$/.idea/wds-gnn-deployment.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/egnn.iml" filepath="$PROJECT_DIR$/.idea/egnn.iml" />
     </modules>
   </component>
 </project>

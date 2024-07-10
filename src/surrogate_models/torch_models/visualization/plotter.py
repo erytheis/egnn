@@ -7,16 +7,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
+import wntr
 from numpy import ndarray
 from torch import Tensor
 from torch_geometric.data import Data
 
-from src.simulators.wntr_simulator.simulator import EpanetDummySimulator
 from src.surrogate_models.torch_models.model.metric import mae_per_graph
 from src.utils.wds_utils import plot_network, plot_network_3d
 
 
-# from src.surrogate_models.torch_models.dataset import WDSGNNDataset
 
 def plot_results(model):
     model.forward()
@@ -181,7 +180,7 @@ class WDSPlotter:
         # load wns for plotting
         self.wns = {}
         for dataset in datasets.datasets:
-            self.wns[dataset.name] = EpanetDummySimulator(epanet_filename=dataset.inp_filename)
+            self.wns[dataset.name] = wntr.network.WaterNetworkModel(dataset.inp_filename)
 
     def tile_inputs(self, batch: Data, size_n: int):
         with torch.no_grad():
@@ -280,7 +279,7 @@ class LayerInspectorPlotter:
 def load_wns(datasets):
     wns = {}
     for dataset in datasets:
-        wns[dataset.name] = EpanetDummySimulator(epanet_filename=dataset.inp_filename)
+        wns[dataset.name] = wntr.network.WaterNetworkModel(dataset.inp_filename)
     return wns
 
 

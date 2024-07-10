@@ -1,0 +1,1 @@
+{"profiledFunctions": [{"file": "/home/bulat/PycharmProjects/egnn/src/utils/torch_utils.py", "lineNo": 307, "functionName": "slice_torch_sparse_coo_tensor", "profiledLines": []}], "unit": 1e-06}

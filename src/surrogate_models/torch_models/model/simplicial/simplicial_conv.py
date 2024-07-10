@@ -375,27 +375,10 @@ class CochainNetwork(torch_geometric.nn.models.basic_gnn.BasicGNN, BaseGNN):
             x_ = torch.cat([x_, x_glob], dim=-1)
         return x_
 
-    @watch_variable
-    def _gating(self, layer_id, x, edge_index, edge_weight, *args, **kwargs):
-        gating = 0.
-        if hasattr(self, 'gatings'):
-            gating = self.gatings[layer_id](x, edge_index, edge_weight, *args, **kwargs)
-            if self.p is not None:
-                gating = self.act(gating)
-                gating = torch.tanh(
-                    scatter((torch.abs(gating[edge_index[0]] - gating[edge_index[1]]) ** self.p).squeeze(-1),
-                            edge_index[0], 0, dim_size=gating.size(0), reduce='mean'))
-            else:
-                gating = torch.tanh(gating)
 
-            x = x * gating
-        return x, gating
-
-    @watch_variable
     def _lower_convs(self, layer_id, x, index, weight, size, *args, **kwargs):
         return self.lower_convs[layer_id](x, index, weight, size, *args, **kwargs)
 
-    @watch_variable
     def _upper_convs(self, layer_id, x, index, weight, size, *args, **kwargs):
         return self.upper_convs[layer_id](x, index, weight, size, *args, **kwargs)
 

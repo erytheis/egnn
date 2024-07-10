@@ -79,7 +79,6 @@ class BaseDataLoader(DataLoader):
             'shuffle': self.shuffle,
             'collate_fn': collate_fn,
             'num_workers': num_workers,
-            # 'spawn_processes': context == 'spawn'
         }
 
         super().__init__(sampler=self.sampler, **self.init_kwargs)

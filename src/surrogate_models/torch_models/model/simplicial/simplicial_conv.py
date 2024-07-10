@@ -15,7 +15,6 @@ from torch_geometric.typing import OptTensor, Adj
 from torch_scatter import scatter
 
 from src.surrogate_models.torch_models.model.base_gnn import BaseGNN, get_mlp_layer, get_activation
-from src.surrogate_models.torch_models.visualization.layer_inspector import LayerInspectorMeta, watch_variable
 
 dim_to_attr = {'node': 'x',
                'edge': 'edge_attr'}
@@ -116,14 +115,6 @@ class SimplicialCN(torch.nn.Module):
                 else:
                     layer.skip_message_passing = True
 
-    def inspect(self, *functions_to_plot):
-        for dim, conv in self.cochain_convs.items():
-            if hasattr(conv, 'layer_inspector'):
-                conv.layer_inspector.active = True
-                conv.layer_inspector.functions_to_plot = functions_to_plot
-
-    def get_inspector(self, dim):
-        return self.cochain_convs[dim].layer_inspector
 
 
 class CochainNetwork(torch_geometric.nn.models.basic_gnn.BasicGNN, BaseGNN):

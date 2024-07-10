@@ -1,3 +1,10 @@
+
+# experiment configuration
+name: SimplicialNet
+debug: false
+device: cuda:0
+n_gpu: 1
+
 arch:
   args:
     edge:
@@ -15,6 +22,7 @@ arch:
       out_channels: 1
     num_layers: 38
   type: SimplicialCN
+
 dataset:
   args:
     cache_transformed: true
@@ -29,7 +37,7 @@ dataset:
     type: HazenWilliamsWeights
   subsets:
   - args:
-      root: saved/simulations/wntr/mod/3000_mod_
+      root: saved/simulations/wntr/mod/experiment_3.2A
     type: WDSGNNDataset
   transforms:
   - args:
@@ -50,17 +58,19 @@ dataset:
       reference_value: 0
       target_key: flowrate
     type: Mask
-debug: false
-device: cuda:1
-inspect: false
+
+
+# data loader config
 loader:
   args:
-    batch_size: 2000
+    batch_size: 10
     num_workers: 0
     shuffle: false
     test_split: 0.1
     validation_split: 0.1
   type: BaseGNNDataLoader
+
+# loss function config
 loss:
 - args:
     virtual_idx: -1
@@ -77,14 +87,12 @@ loss:
 metrics:
 - mae
 - r2
-n_gpu: 1
-name: SimplicialNet
+
 optimizer:
   args:
     lr: 0.003
   reset: True
   type: Adam
-#resume: /cluster/home/bulatk/cluster/home/bulatk/tmp/pythonProject/saved/training_logs/models/SimplicialNet/0118_133137/checkpoint-epoch800-loss0.0199.pth
 seed: 90342
 trainer:
   args:
@@ -105,7 +113,3 @@ trainer:
     - 1
     - 0
   type: WDSSimplexTrainer
-writer:
-  args:
-    enabled: true
-  type: WandBWriter

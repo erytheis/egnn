@@ -2,19 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c1370b5a-96a3-458c-86f8-58101d8c3120" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/egnn.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/wds-gnn-deployment.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/simulators/wntr_simulator.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/input/config_example.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/input/config_example.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/wds_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/wds_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/input/config_simplex_transferability.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/input/config_simplex_transferability.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/loader/base_dataloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/loader/base_dataloader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/base_gnn.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/base_gnn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/pressure_reconstruction.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/pressure_reconstruction.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/simplicial_conv.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/simplicial_conv.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/runners.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/runners.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/visualization/plotter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/visualization/plotter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/parse_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/parse_config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,10 +37,24 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/input/inp_files" />
     <property name="settings.editor.selected.configurable" value="ssh.settings" />
   </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings>
+        <option name="useSoftWraps" value="true" />
+      </console-settings>
+    </option>
+  </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/input/inp_files" />
+      <recent name="$PROJECT_DIR$/saved/simulations/wntr/mod/experiment_3.2A" />
+      <recent name="$PROJECT_DIR$/saved/simulations/wntr/mod" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/saved/simulations/wntr/mod/experiment_3.2A" />
       <recent name="$PROJECT_DIR$/input" />
     </key>
   </component>
@@ -84,7 +92,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1720622785478</updated>
-      <workItem from="1720622786807" duration="883000" />
+      <workItem from="1720622786807" duration="6772000" />
     </task>
     <servers />
   </component>
@@ -102,7 +110,23 @@
       </map>
     </option>
   </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/simplicial_conv.py</url>
+          <line>76</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/wds_dataset.py</url>
+          <line>69</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/egnn$train.coverage" NAME="train Coverage Results" MODIFIED="1720622790867" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/egnn$train.coverage" NAME="train Coverage Results" MODIFIED="1720627050174" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

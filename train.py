@@ -1,8 +1,6 @@
 import matplotlib
 import torch
 
-matplotlib.use('Agg')  # !IMPORTANT
-
 import src.surrogate_models.torch_models.experiments as trainers
 import src.surrogate_models.torch_models.experiments.schedulers as schedulers
 import src.surrogate_models.torch_models.loader.dataloaders as loaders
@@ -27,8 +25,7 @@ if __name__ == '__main__':
 
     # parse config
     args = load_args(
-        'config_simplex_transferability.yaml',
-        # resume =  'saved/training_logs/models/SimplicialNet/0423_140224/checkpoint-epoch0-loss0.0000.pth',
+        'config_example.yaml',
     )
 
     options = load_cli_options()

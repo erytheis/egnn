@@ -17,7 +17,7 @@ from src.surrogate_models.torch_models.data.data import GraphData
 from typing import Optional, Callable, List, Union, Mapping
 
 from src.surrogate_models.torch_models.dataset.base_gnn_dataset import BaseGNNDataset, process_signals
-from src.utils.utils import get_abs_path, read_json, read_yaml
+from src.utils.utils import get_abs_path, read_json, read_yaml, PROJECT_ROOT
 from src.utils.wds_utils import get_hydraulic_resistance
 
 
@@ -70,10 +70,7 @@ class WDSGNNDataset(InMemoryDataset, BaseGNNDataset):
         self.inp_filename = None
         if 'config.yaml' in self.list_file_names_in_raw():
             config = read_yaml(join(self.root, 'config.yaml'))
-            self.inp_filename = config["fixed_params"]['network']
-        elif 'config.json' in self.list_file_names_in_raw():
-            config = read_json(join(self.root, 'config.json'))
-            self.inp_filename = config["fixed_params"]['network']['value']
+            self.inp_filename = join(PROJECT_ROOT, 'input', 'inp_files', config["fixed_params"]['network'])
 
     def prepare_transforms(self):
 
@@ -85,11 +82,9 @@ class WDSGNNDataset(InMemoryDataset, BaseGNNDataset):
         # pre_transform the data. We have to do it separately because the edge indices are repeated until
         # collating function is called
         if self.pre_transform is not None:
-            # for i, data in enumerate(self):
             print('Pre-Transformed')
             self._data_list = None
             self.data = self.pre_transform(self.data)
-            # self.data[i] = data
 
         if hasattr(self.transform, 'infer_parameters'):
             self.transform.infer_parameters(self.data)
@@ -463,4 +458,3 @@ def test_discrepancy(hl_from_heads, hl_from_flowrates):
     hl_err = np.abs(hl_from_heads) > 1e-3
     discrepancy = torch.all(torch.stack([abs_err, relative_err, hl_err]), dim=0)
     return discrepancy
-

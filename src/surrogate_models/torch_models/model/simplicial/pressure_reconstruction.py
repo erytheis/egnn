@@ -1,221 +1,182 @@
+import time
+from typing import List, Optional
+
 import torch
+import torch_geometric
 from line_profiler_pycharm import profile
-from torch_geometric.data import Batch
+from torch import scatter_add
+from torch_geometric.graphgym import GCNConv
+from torch_geometric.typing import OptTensor, Tensor, Adj
 
-from src.surrogate_models.torch_models.model.base_gnn import WeightAggregation
-
-
-class PresssureReconstruction():
-    differentiable: bool
-
-    def __init__(self,
-                 node_sensor_idx=3,
-                 virtual_nodes_idx=-1,
-                 virtual_edges_idx=-1,
-                 **kwargs):
-        self.node_sensor_idx = node_sensor_idx
-        self.virtual_nodes_idx = virtual_nodes_idx
-        self.virtual_edges_idx = virtual_edges_idx
-
-        pass
-
-    def forward(self, batch, output):
-        raise NotImplementedError
+from src.surrogate_models.torch_models.model.metric import r2_score
 
 
-class ShortestPathDistance(PresssureReconstruction):
-    differentiable: bool = True
+class SimplicialNonParametricLayer(GCNConv):
 
-    def __init__(self, num_iterations: int = 50,
+    def __init__(self, *args, **kwargs, ):
+        super().__init__(*args, **kwargs, normalize=False)
 
-                 **kwargs):
+    def forward(self, x: Tensor,
+                edge_index: Tensor, weights: OptTensor,
+                size=None,
+                *args, **kwargs
+                ):
+        # propagate_type: (x: Tensor, edge_weight: OptTensor)
+        out = self.propagate(edge_index, x=x, edge_weight=weights,
+                             size=size, **kwargs)
+
+        return out
+
+    def __set_size__(self, size: List[Optional[int]], dim: int, src: Tensor):
+        the_size = size[dim]
+        if the_size is None:
+            size[dim] = src.size(self.node_dim)
+        elif the_size != src.size(self.node_dim) and self.message_passing_direction == 'boundary':
+            raise ValueError(
+                (f'Encountered tensor with size {src.size(self.node_dim)} in '
+                 f'dimension {self.node_dim}, but expected size {the_size}.'))
+
+
+class SimplicialFeaturePropagation(GCNConv):
+    def __init__(self, *args, **kwargs, ):
+        super().__init__(in_channels=1, out_channels=1, *args, **kwargs, normalize=False)
+        self.lin = None
+
+    @profile
+    def forward(self, x: Tensor, edge_index: Adj,
+                edge_weight: OptTensor = None) -> Tensor:
+        # propagate_type: (x: Tensor, edge_weight: OptTensor)
+        out = self.propagate(edge_index, x=x, edge_weight=edge_weight,
+                             size=None)
+
+        return out
+
+    def message(self, x_j: Tensor, edge_weight: OptTensor) -> Tensor:
+        return x_j if edge_weight is None else edge_weight.view(-1, 1) * x_j
+
+
+class PowerApproximationLayer(torch.nn.Module):
+
+    def __init__(self, num_iterations=50, virtual_nodes=True, aggr=None, **kwargs):
         self.num_iterations = num_iterations
-        super().__init__(**kwargs)
+        self.virtual_nodes = virtual_nodes
 
-    def forward(self, batch, output, **kwargs):
-        # override the number of iterations if it is passed as a keyword argument
-        num_iterations = self.num_iterations if 'num_iterations' not in kwargs else kwargs['num_iterations']
+        self.matmul = SimplicialNonParametricLayer(1, 1, flow='target_to_source').eval()
+        self.fp = SimplicialFeaturePropagation(node_dim=0, flow='target_to_source').eval()
 
-        virtual_nodes = True if self.virtual_nodes_idx is not None else None
+    @profile
+    def scatter_laplacian(self, batch, output_, node_sensor_idx=3, junction_idx=2, epsilon=0.0001):
+        total_evaluation_time = 0
 
-        return iterative_shortest_path_distance(batch, output,
-                                                num_iterations=num_iterations,
-                                                virtual_nodes=virtual_nodes,
-                                                **kwargs)
+        output_['x'] = torch.zeros_like(batch.node_y.unsqueeze(-1))
+        output = output_['edge_attr'].squeeze()
 
+        # add known heads
+        known_nodes = batch.x[:, node_sensor_idx] == 1
+        unknown_nodes = batch.x[:, junction_idx] == 1
+        known_heads = batch.node_y[known_nodes].unsqueeze(-1)
+        real_nodes = batch.x[:, -1] == 0
+        real_edges = batch.edge_attr[:, -1] == 0
 
-def distance_from_sources(edge_index,
-                          source_node_values,  # vector with values of the sources nodes and zeros for the rest
-                          destination_nodes,  # vector with the indices of the destination nodes
-                          aggr=None,
-                          weights=None):
-    # get the sensor values
-    if aggr is None:
-        aggr = WeightAggregation(aggr='mean')
+        # scatter operation of B1 @ known_heads
+        dH_known = self.matmul(batch.x[:, 1].unsqueeze(-1), batch.boundary_index.flip(0),
+                               batch.boundary_weight,
+                               size=tuple([i + 1 for i in batch.boundary_index.flip(0).max(dim=1)[0]]))
+        # dH_known = (B1_known @ known_heads)
 
-    p_ = source_node_values.clone()
-    W = weights if weights is not None else torch.ones(edge_index.shape[1], dtype=torch.float32)
-    num_nodes = source_node_values.shape[0]
+        loss_coefficient = batch.edge_attr[:, 1]
+        dH_predicted = torch.abs(output) ** 1.852 * loss_coefficient * torch.sign(output)
 
-    source_nodes = (source_node_values > 0).float()  # vector with ones for the source nodes and zeros for the rest
-    check = torch.zeros_like(source_nodes).bool()
+        # get right side
+        right_side = self.matmul(dH_predicted.unsqueeze(-1) - dH_known, batch.boundary_index,
+                                 batch.boundary_weight, size=tuple([i + 1 for i in batch.boundary_index.max(dim=1)[0]]))
+        right_side[known_nodes] = 0
+        right_side = right_side  # [unknown_nodes]
+        right_side = right_side.squeeze()
 
-    while not torch.any(check) > 0:
-        # edges incident to all the nodes that have a source node as a source
-        source_edges_src = source_nodes[edge_index[0]]
-        source_edges_dst = source_nodes[edge_index[1]]
+        num_nodes = batch.num_nodes
+        edge_index = torch.cat([batch.edge_index[:, real_edges], batch.edge_index.flip(0)[:, real_edges]], axis=1)
+        row, col = edge_index[0], edge_index[1]
+        edge_weight = torch.ones(edge_index.size(1),  # dtype=dtype,
+                                 device=edge_index.device)
 
-        # get edges that are incident to one source node
-        source_edges = source_edges_src + source_edges_dst == 1
+        # find laplacian
+        laplacian_torch_ = torch_geometric.utils.get_laplacian(edge_index, normalization='rw')
 
-        # get the edges that need to be flipped
-        to_flip = torch.stack([source_edges_dst.bool(), ~source_edges_src.bool()])
-        to_flip = torch.all(to_flip, dim=0)
+        # find degrees
+        deg = scatter_add(edge_weight, row, dim=0, dim_size=num_nodes)  # [unknown_nodes]
+        deg_inv = 1.0 / deg
+        deg_inv.masked_fill_(deg_inv == float('inf'), 0)
 
-        # flip the edges
-        edge_index[:, to_flip] = edge_index[:, to_flip].flip(0)
-        W[to_flip] = W[to_flip] * -1
+        # find solution dense
+        dense_solution = torch.zeros(batch.num_nodes, device=batch.x.device)
+        dense_solution[known_nodes] = known_heads.squeeze()
+        dense_solution = dense_solution[real_nodes]
 
-        # contaminate new nodes
-        p_new = aggr(edge_index[:, source_edges], p_.unsqueeze(-1),
-                     edge_weight=W[source_edges].abs().unsqueeze(-1),
-                     size=(num_nodes, num_nodes)
-                     ).squeeze()
+        # mask edges adjacent to sensor nodes
+        sensors = batch.x[:, node_sensor_idx] == 1
+        sensor_edges = sensors[laplacian_torch_[0][0]] + sensors[laplacian_torch_[0][1]]
+        unknown_edges = real_nodes[laplacian_torch_[0][0]] + real_nodes[laplacian_torch_[0][1]]
+        laplacian_torch_[1][sensor_edges] = 0
+        laplacian_torch_[1][sensor_edges] = 0
+        scatter_solution = torch.zeros(batch.num_nodes, device=batch.x.device)
 
-        p_ += p_new  # + p_visited
+        right_side = (right_side * deg_inv)
+        l_scatter_weights = right_side.clone().unsqueeze(-1)
+        l_scatter_output = torch.zeros_like(right_side).unsqueeze(-1)
+        # l_iter = torch.zeros_like(laplacian_torch)
 
-        # update the source nodes
-        source_nodes_ = (source_nodes.clone() > 0).float()
-        new_source_nodes = torch.zeros_like(source_nodes)
+        # add identity matrix
+        N = batch.num_nodes
+        loop_index = torch.arange(0, N, dtype=torch.long, device=edge_index.device)
+        loop_index = loop_index.unsqueeze(0).repeat(2, 1)
 
-        source_nodes += (
-                torch.scatter_add(new_source_nodes, 0, edge_index[1], source_nodes_[edge_index[0]]) > 0).float()
-        source_nodes += (
-                torch.scatter_add(new_source_nodes, 0, edge_index[0], source_nodes_[edge_index[1]]) > 0).float()
+        # remove eye from laplacian
+        mask = (laplacian_torch_[0][0] == laplacian_torch_[0][1])
+        laplacian_torch_[1][mask] = laplacian_torch_[1][mask] - 1
+        indices = laplacian_torch_[0][:, unknown_edges]
+        weights = -laplacian_torch_[1][unknown_edges]
 
-        check = torch.all(torch.stack([destination_nodes, source_nodes]), axis=0)
+        # truncated solution
+        for i in range(50000):
+            # multiply with identity matrix
+            if i == 0:
+                l_scatter_weights = self.fp(
+                    l_scatter_weights,
+                    loop_index[:, unknown_nodes],
+                    torch.ones(N, device=edge_index.device)[unknown_nodes]
+                )
+            else:
+                l_scatter_weights = self.fp(
+                    l_scatter_weights,
+                    indices,
+                    weights,
+                )
 
-    return p_
+            # convergence condition
+            time_st = time.time()
+            if i % 1000 == 0:
+                norm = torch.norm(l_scatter_weights, dim=0)
+                print('norm:', norm)
+                if norm < epsilon:
+                    print('converged')
+                    break
 
+                virtual = batch.x[:, -1] == 1
+                acc = r2_score(batch.node_y[~virtual], l_scatter_output.squeeze()[~virtual])
+                print(acc)
+                if acc > 0.99:
+                    print('converged')
+                    break
+            time_end = time.time()
+            evaluation_time = time_end - time_st
+            total_evaluation_time += evaluation_time
 
-def nearest_neighbour(edge_index,
-                      source_nodes,  # vector with values of the sources nodes and zeros for the rest
-                      destination_nodes,  # vector with the indices of the destination nodes
-                      condition_function='all',
-                      ):
-    edge_index = edge_index.clone()
-    source_nodes = source_nodes.float()
-    condition_function = torch.any if condition_function == 'any' else torch.all
-    check = torch.zeros_like(source_nodes).bool()
+            l_scatter_output += l_scatter_weights
+        scatter_solution = l_scatter_output.squeeze()
 
-    output = torch.zeros_like(source_nodes)
-
-    while True:
-        old_source_nodes = source_nodes.clone()
-
-        # remove source nodes that are already destination nodes and store them
-        output[torch.all(torch.stack([destination_nodes, source_nodes]), axis=0)] = 1
-        source_nodes[destination_nodes] = 0
-
-        # edges incident to all the nodes that have a source node as a source
-        source_edges_src = source_nodes[edge_index[0]]
-        source_edges_dst = source_nodes[edge_index[1]]
-
-        # get the edges that need to be flipped
-        to_flip = torch.stack([source_edges_dst.bool(), ~source_edges_src.bool()])
-        to_flip = torch.all(to_flip, dim=0)
-
-        # flip the edges
-        edge_index[:, to_flip] = edge_index[:, to_flip].flip(0)
-
-        # update the source nodes
-        source_nodes_ = (source_nodes.clone() > 0).float()
-        _ = torch.zeros_like(source_nodes)
-
-        # new source nodes
-        source_nodes += (
-                torch.scatter_add(_, 0, edge_index[1], source_nodes_[edge_index[0]]) > 0).float()
-        source_nodes += (
-                torch.scatter_add(_, 0, edge_index[0], source_nodes_[edge_index[1]]) > 0).float()
-
-        source_nodes = source_nodes.bool().float()
-
-        if torch.all(old_source_nodes == source_nodes):
-            return output.bool()
-
-
-@profile
-def iterative_shortest_path_distance(batch, output_, node_sensor_idx=3, num_iterations=50, virtual_nodes=True,
-                                     aggr=None, **kwargs):
-    if aggr is None:
-        aggr = WeightAggregation(aggr='mean')
-
-    edge_index = batch.edge_index
-    edge_attr = batch.edge_attr
-
-    source_nodes = batch.x[:, node_sensor_idx].clone()
-
-    if virtual_nodes:
-        virtual_nodes = batch.x[:, -1] == 1
-        virtual_edges = batch.edge_attr[:, -1] == 1
-
-    else:
-        virtual_nodes = torch.zeros(batch.num_nodes, dtype=torch.bool)
-        virtual_edges = torch.zeros(batch.num_edges, dtype=torch.bool)
-
-    edge_index = batch.edge_index[:, ~virtual_edges].clone()
-
-    # get the edge weights
-    W = batch.edge_attr[:, 1] * output_['edge_attr'].abs().squeeze().clone() ** 1.852
-    # W = batch.edge_attr[:, 1] * batch.edge_y.abs().squeeze().clone() ** 1.852
-    W = W[~virtual_edges]
-    W = W.squeeze() if W.dim() == 2 else W
-
-    # get the sensor values
-    initial_node_value = batch.x[:, 1]
-    target = batch.node_y  # [~virtual_nodes]
-    p_ = initial_node_value.clone()  # [~virtual_nodes]
-
-    for i in range(num_iterations):
-        # old souce nodes and node values
-
-        # edges incident to all the nodes that have a source node as a source
-        source_edges_src = source_nodes[edge_index[0]]
-        source_edges_dst = source_nodes[edge_index[1]]
-
-        # get edges that are incident to one source node
-        source_edges = source_edges_src + source_edges_dst == 1
-        # get edges that are incident to two source nodes
-        visited_edges = source_edges_src + source_edges_dst > 1
-
-        # get the edges that need to be flipped
-        to_flip = torch.stack([source_edges_dst.bool(), ~source_edges_src.bool()])
-        to_flip = torch.all(to_flip, dim=0)
-
-        # flip the edges
-        edge_index[:, to_flip] = edge_index[:, to_flip].flip(0)
-        # W[to_flip] = W[to_flip] * -1
-
-        # contaminate new nodes
-        num_nodes = batch.num_nodes  # - virtual_nodes.sum()
-        p_new = aggr(edge_index[:, source_edges], p_.unsqueeze(-1),
-                     edge_weight=W[source_edges].abs().unsqueeze(-1),
-                     size=(num_nodes, num_nodes)
-                     ).squeeze()
-
-        p_ += p_new  # + p_visited
-
-        # update the source nodes
-        source_nodes_ = (source_nodes.clone() > 0).float()
-        new_source_nodes = torch.zeros_like(source_nodes)
-
-        source_nodes += (
-                torch.scatter_add(new_source_nodes, 0, edge_index[1], source_nodes_[edge_index[0]]) > 0).float()
-        source_nodes += (
-                torch.scatter_add(new_source_nodes, 0, edge_index[0], source_nodes_[edge_index[1]]) > 0).float()
-
-    output_['x'] = p_.unsqueeze(-1)
-    return output_
+        output_['x'] = scatter_solution.unsqueeze(-1)
+        return output_, total_evaluation_time
 
 
 @profile
@@ -223,9 +184,6 @@ def get_heads_from_flowrates_linalg(batch, output, dH_predicted=None,
                                     reservoir_idx=3,
                                     junction_idx=2,
                                     edge_mask=None):
-    # real_nodes = batch.x[:, -1] == 1
-    # real_edges = batch.edge_attr[:, -1] == 1
-
     if dH_predicted is None:
         loss_coefficient = batch.edge_attr[:, 1]
         dH_predicted = torch.abs(output) ** 1.852 * loss_coefficient * torch.sign(output)
@@ -291,8 +249,3 @@ def from_flowrates_to_heads(batch, output_, node_sensor_idx=3, **kwargs):
         output_['x'][slices_x] = node_prediction.unsqueeze(-1)
 
     return output_
-
-# reservoir_nodes = batch_.mask_by_features(value=1, column_idx=3, attribute='x')
-# reservoir_pipes = (reservoir_nodes[batch_.edge_index[0]] | reservoir_nodes[batch_.edge_index[1]])[
-#     edge_mask]
-# output[reservoir_pipes] = batch_.edge_y[edge_mask][reservoir_pipes]

@@ -19,7 +19,7 @@ from src.utils.utils import get_abs_path, read_json, write_json, read_yaml, writ
 
 
 class ConfigParser(BaseModule):
-    module_root = dirname(__file__)
+    module_root = PROJECT_ROOT
     input_dir = join(module_root, 'input')
 
     def __init__(self, config, resume=None, modification=None, run_id=None):

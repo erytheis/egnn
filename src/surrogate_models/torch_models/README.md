@@ -52,9 +52,6 @@ PyTorch deep learning project made easy.
   ```
   pytorch-template/
   │
-  ├── train.py - main script to start training
-  ├── test.py - evaluation of trained model
-  │
   ├── config.json - holds configuration for training
   ├── parse_config.py - class to handle config file and cli options
   │
@@ -68,7 +65,7 @@ PyTorch deep learning project made easy.
   ├── data_loader/ - anything about data loading goes here
   │   └── data_loaders.py
   │
-  ├── data/ - default directory for storing input data
+  ├── data/ - data classes
   │
   ├── model/ - models, losses, and metrics
   │   ├── model.py

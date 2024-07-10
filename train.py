@@ -1,4 +1,3 @@
-import lovely_tensors as lt
 import matplotlib
 import torch
 
@@ -22,7 +21,6 @@ if __name__ == '__main__':
 
     # initial setup
     torch.multiprocessing.set_start_method('spawn')
-    lt.monkey_patch()
     torch.cuda.empty_cache()
     torch.autograd.set_detect_anomaly(True)
     SEED = 90342

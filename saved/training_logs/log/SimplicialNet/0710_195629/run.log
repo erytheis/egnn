@@ -1,6 +1,0 @@
-DEBUG:trainer:Train Epoch: 1 [0/2400 (0%)] Loss: 24.621931
-DEBUG:trainer:Train Epoch: 1 [30/2400 (1%)] Loss: 5.639740
-DEBUG:trainer:Train Epoch: 1 [60/2400 (2%)] Loss: 0.817824
-DEBUG:trainer:Train Epoch: 1 [90/2400 (4%)] Loss: 3.182529
-DEBUG:trainer:Train Epoch: 1 [120/2400 (5%)] Loss: 4.050723
-DEBUG:trainer:Train Epoch: 1 [150/2400 (6%)] Loss: 2.315338

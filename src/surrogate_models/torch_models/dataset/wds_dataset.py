@@ -236,8 +236,7 @@ def read_wds_data(folder,
                   skip_features=None,
                   name=None,
                   normalize_heads=False,
-                  negative_heads=False,
-                  autoencode=False):
+                  negative_heads=False):
     print("Reading folder {}".format(folder))
     files = glob.glob(osp.join(folder, '{}*.csv'.format(prefix)))
     names = [f.split(os.sep)[-1][len('') + 0:-4] for f in files]
@@ -360,7 +359,6 @@ def read_wds_data(folder,
     # combine node attributes
     x = cat([node_signals, node_properties])
     x = x[~torch.any(x.isnan(), dim=1)]
-    number_of_nodes = edge_index.max().item() + 1
     x_names = node_signal_names.tolist() + node_property_names
 
     # combine edge attributes
@@ -379,8 +377,6 @@ def read_wds_data(folder,
         flowrate_ = edge_attributes[:, edge_attr_names.index('flowrate')]
         flowrate_scaled = torch.sign(flowrate_) * (flowrate_.abs() ** 1.852) * loss_coefficient
         if 'flowrate_scaled' not in skip_features:
-            # flowrate_scaled = edge_attributes[:, edge_attr_names.index('flowrate')].sign() * np.abs(
-            #     edge_attributes[:, edge_attr_names.index('flowrate')]) ** 1.852
 
             edge_attributes = torch.cat([edge_attributes, flowrate_scaled.unsqueeze(-1)], dim=1)
             edge_attr_names = edge_attr_names + ['flowrate_scaled']
@@ -408,9 +404,7 @@ def read_wds_data(folder,
                 print('Flowrate: {}'.format(fl[discrepancy]))
                 print('Error: {}'.format(err[discrepancy]))
 
-            # Slicing test
 
-        # edge_attributes[:, edge_attr_names.index('flowrate')] = flowrate_
 
     if name is not None:
         slices['wds_names'] = torch.arange(len(slices['y']), dtype=torch.long)
@@ -418,20 +412,6 @@ def read_wds_data(folder,
 
     # construct labels
     y, y_names = None, None
-    if 'graph_attributes' in names:  # Regression problem.
-        raise NotImplementedError
-    elif 'graph_labels' in names:  # Classification problem.
-        raise NotImplementedError
-    elif 'edge_labels' in names:  # Classification problem.
-        raise NotImplementedError
-    elif 'node_labels' in names:
-        if not autoencode:
-            y = node_labels
-            y_names = node_label_names.tolist()
-        else:
-            y = x.clone()
-            slices['y'] = slices['x'].clone()
-            y_names = x_names
 
     # run tests
     data = GraphData(x=x,

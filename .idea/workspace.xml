@@ -2,14 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c1370b5a-96a3-458c-86f8-58101d8c3120" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/input/config_example.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/input/config_example.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/base_gnn_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/base_gnn_dataset.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/wds_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/dataset/wds_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/base_gnn.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/base_gnn.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/pressure_reconstruction.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/pressure_reconstruction.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/simplicial_conv.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/simplicial_conv.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/surrogate_models/torch_models/parse_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/surrogate_models/torch_models/parse_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,7 +87,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1720622785478</updated>
-      <workItem from="1720622786807" duration="6772000" />
+      <workItem from="1720622786807" duration="7095000" />
     </task>
     <servers />
   </component>
@@ -115,7 +110,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/surrogate_models/torch_models/model/simplicial/simplicial_conv.py</url>
-          <line>76</line>
+          <line>75</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">

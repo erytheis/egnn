@@ -2,7 +2,7 @@
 !.gitignore
 
 # this project
-src/simulators/*/inputs/
+input/inp_files
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -11,8 +11,6 @@ __pycache__/
 
 # C extensions
 *.so
-
-
 
 
 # Installer logs

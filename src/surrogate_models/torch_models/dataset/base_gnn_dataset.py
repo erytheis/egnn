@@ -229,9 +229,3 @@ gnn_file_names = [
     'edge_labels', 'edge_attributes', 'edge_signals', 'graph_labels', 'graph_attributes'
 ]
 
-if __name__ == '__main__':
-    from src.surrogate_models.torch_models.dataset.transforms.transforms import *
-
-    config = load_test_config()
-    gnn_ds = load_datasets(config, device=torch.device('cpu'))
-    print(config)

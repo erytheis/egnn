@@ -5,10 +5,9 @@ import torch.nn.functional as F
 import torch_geometric
 from torch import Tensor
 from torch.nn import LeakyReLU, ModuleDict
-from torch_geometric.nn import GCN2Conv, GCNConv
+from torch_geometric.nn import GCNConv
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.dense.linear import Linear
-from torch_geometric.typing import OptTensor, Adj
 
 from src.surrogate_models.torch_models.model.base_gnn import BaseGNN, get_mlp_layer, get_activation
 

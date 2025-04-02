@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from line_profiler_pycharm import profile
+
 from matplotlib import pyplot as plt
 
 from src.surrogate_models.torch_models.experiments.trainer.base_trainer import BaseTrainer
@@ -49,7 +49,7 @@ class GNNTrainer(BaseTrainer):
             writer=self.writer,
             validation=True)
 
-    @profile
+    
     def _train_epoch(self, epoch):
         """
         Training logic for an epoch
@@ -92,7 +92,7 @@ class GNNTrainer(BaseTrainer):
             self.lr_scheduler.step()
         return log
 
-    @profile
+    
     def _log_training(self, epoch, loss, batch_idx, data, output):
         if self.writer is not None:
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
@@ -114,7 +114,7 @@ class GNNTrainer(BaseTrainer):
             self._progress(batch_idx),
             loss.item()))
 
-    @profile
+    
     def _log_validation(self, epoch, loss, batch_idx, data, output):
 
         if self.writer is not None:
@@ -152,7 +152,7 @@ class GNNTrainer(BaseTrainer):
 
             self._plot(epoch, data, output)
 
-    @profile
+    
     def _valid_epoch(self, epoch):
         """
         Validate after training an epoch

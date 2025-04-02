@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import torch
 import torch_geometric
-from line_profiler_pycharm import profile
+
 from torch import scatter_add
 from torch_geometric.graphgym import GCNConv
 from torch_geometric.typing import OptTensor, Tensor, Adj
@@ -42,7 +42,7 @@ class SimplicialFeaturePropagation(GCNConv):
         super().__init__(in_channels=1, out_channels=1, *args, **kwargs, normalize=False)
         self.lin = None
 
-    @profile
+    
     def forward(self, x: Tensor, edge_index: Adj,
                 edge_weight: OptTensor = None) -> Tensor:
         # propagate_type: (x: Tensor, edge_weight: OptTensor)
@@ -64,7 +64,7 @@ class PowerApproximationLayer(torch.nn.Module):
         self.matmul = SimplicialNonParametricLayer(1, 1, flow='target_to_source').eval()
         self.fp = SimplicialFeaturePropagation(node_dim=0, flow='target_to_source').eval()
 
-    @profile
+    
     def scatter_laplacian(self, batch, output_, node_sensor_idx=3, junction_idx=2, epsilon=0.0001):
         total_evaluation_time = 0
 
@@ -179,7 +179,7 @@ class PowerApproximationLayer(torch.nn.Module):
         return output_, total_evaluation_time
 
 
-@profile
+
 def get_heads_from_flowrates_linalg(batch, output, dH_predicted=None,
                                     reservoir_idx=3,
                                     junction_idx=2,
@@ -215,7 +215,7 @@ def get_heads_from_flowrates_linalg(batch, output, dH_predicted=None,
     return solution
 
 
-@profile
+
 def from_flowrates_to_heads(batch, output_, node_sensor_idx=3, **kwargs):
     output_['x'] = torch.zeros_like(batch.node_y.unsqueeze(-1))
 

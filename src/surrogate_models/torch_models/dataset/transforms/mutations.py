@@ -1,5 +1,5 @@
 import numpy as np
-from line_profiler_pycharm import profile
+
 
 import src.surrogate_models
 from src.surrogate_models.torch_models.data.simplex import get_boundary_and_laplacian_new, SimplexData
@@ -43,7 +43,7 @@ class ToSimplexData(BaseTransform):
         self.iterative_smoothing_coefficient = iterative_smoothing_coefficient
         super().__init__()
 
-    @profile
+    
     def forward(self, data, *args, **kwargs):
         B_i, B_w, L_i, L_w = get_boundary_and_laplacian_new(data,
                                                             self.normalized,

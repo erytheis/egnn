@@ -3,7 +3,7 @@ from typing import List, Optional, Mapping
 
 import numpy as np
 import torch
-from line_profiler_pycharm import profile
+
 from torch import Tensor
 from torch_geometric.data import Data
 
@@ -38,7 +38,7 @@ class MinMaxNormalize(BaseTransform):
     def scale(self):
         pass
 
-    # @profile
+    # 
     def forward(self, data: Data, inverse=False) -> Data:
         for key in self.min_value.keys():
             if isinstance(data[key], torch.Tensor):

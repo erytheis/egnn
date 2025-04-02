@@ -2,8 +2,6 @@ experiment_name: 10000_l-town_
 fixed_params:
   network: l-town.inp
   options:
-    hydraulic:
-      demand_model: PDD
     time:
       duration: 0
 number_of_runs: 10000

@@ -2,7 +2,7 @@ from typing import Optional
 
 import numpy as np
 import torch
-from line_profiler_pycharm import profile
+
 from sklearn.metrics import mean_absolute_error
 from torch.nn.functional import l1_loss
 # from torch.ignite.metrics import Metric
@@ -27,7 +27,7 @@ def top_k_acc(output, target, k=3, *args, **kwargs):
             correct += torch.sum(pred[:, i] == target).item()
     return correct / len(target)
 
-@profile
+
 def mae(output, target, mask: Optional[np.ndarray] = None, *args, **kwargs):
     with torch.no_grad():
         if mask is not None:
@@ -97,7 +97,7 @@ def r2_score_np(output, target):
     r2 = 1 - ss_res / ss_tot
     return r2
 
-@profile
+
 def r2(output, target, start_idx=None, end_idx=None, mask=None, *args, **kwargs):
     if start_idx is not None and end_idx is not None:
         if len(start_idx) == 0:

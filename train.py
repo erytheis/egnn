@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     # parse config
     args = load_args(
-        'config_example.yaml',
+        'config_zj_3.2b.yaml',
     )
 
     options = load_cli_options()

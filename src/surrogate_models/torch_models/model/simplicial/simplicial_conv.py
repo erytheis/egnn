@@ -33,7 +33,7 @@ class ModuleDict(torch.nn.ModuleDict):
         return x
 
     def decode(self, layer_id, x: Mapping[Any, Any], x_init: Mapping[Any, Any], *args, **kwargs):
-        x = {dim: module.decode( x[dim], x_init[dim], *args, **kwargs) for dim, module in self.items()}
+        x = {dim: module.decode( x[dim]) for dim, module in self.items()}
         return x
 
 
@@ -147,7 +147,8 @@ class CochainNetwork(torch_geometric.nn.models.basic_gnn.BasicGNN, BaseGNN):
         if self.alpha is None or self.alpha >= 1:
             self.alpha = None
 
-        self.dropout = dropout
+        self.dropout.p = dropout
+        self.dropout.training = self.training
 
     def init_conv(self, in_channels: int, out_channels: int, lin_act=None,
                   **kwargs) -> MessagePassing:
@@ -164,9 +165,9 @@ class CochainNetwork(torch_geometric.nn.models.basic_gnn.BasicGNN, BaseGNN):
     def encode(self, x: Tensor, batch=None, *args, **kwargs) -> Tensor:
         """"""
 
-        x = self._embedding(0, x, batch=batch, *args, **kwargs)
+        x = self._embedding(x)
 
-        x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.dropout(x)
 
         return x
 
@@ -196,7 +197,7 @@ class CochainNetwork(torch_geometric.nn.models.basic_gnn.BasicGNN, BaseGNN):
         :param x_init: initial embedding
         :return:
         """
-        x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.dropout(x)
 
         x = self._lin_out( x)
 

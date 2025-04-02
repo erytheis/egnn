@@ -12,7 +12,6 @@ from itertools import repeat
 from collections import OrderedDict
 
 import torch_geometric
-from prettytable import PrettyTable
 from torch import Tensor
 from torch_geometric.utils import add_remaining_self_loops
 from torch_geometric.utils.num_nodes import maybe_num_nodes
@@ -20,7 +19,7 @@ from torch_scatter import scatter_add
 from torch_scatter import scatter, segment_csr, gather_csr
 
 from src.utils.utils import Iterator
-from src.surrogate_models.torch_models.visualization.writer.writers import BaseWriter
+# from src.surrogate_models.torch_models.visualization.writer.writers import BaseWriter
 
 
 def ensure_dir(dirname):
@@ -66,7 +65,7 @@ def prepare_device(n_gpu_use, device_name='cuda:0'):
 
 
 class MetricTracker:
-    def __init__(self, *keys, writer: Optional[BaseWriter] = None, filterby: Optional[List[str]] = None, validation=False):
+    def __init__(self, *keys, writer=None, filterby: Optional[List[str]] = None, validation=False):
         self.writer = writer
         self.validation = validation
         if validation:
@@ -107,18 +106,7 @@ class MetricTracker:
         return dict(self._data.average)
 
 
-def count_parameters(model, print_architecture=False):
-    table = PrettyTable(["Modules", "Parameters"])
-    total_params = 0
-    for name, parameter in model.named_parameters():
-        if not parameter.requires_grad: continue
-        params = parameter.numel()
-        table.add_row([name, params])
-        total_params += params
-    if print_architecture:
-        print(table)
-    print(f"Total Trainable Params: {total_params}")
-    return total_params
+
 
 
 def fully_adjacent():

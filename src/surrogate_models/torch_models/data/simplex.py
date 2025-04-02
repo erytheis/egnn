@@ -6,8 +6,7 @@ import numpy as np
 import scipy
 import torch
 import torch_sparse
-from hodgelaplacians import HodgeLaplacians
-from line_profiler_pycharm import profile
+
 from torch_geometric.data import Batch
 from torch_geometric.data.data import BaseData
 from torch_geometric.typing import OptTensor
@@ -65,7 +64,7 @@ class SimplexData(GraphData):
     def node_y(self):
         return self['node_y']
 
-    @profile
+    
     def __inc__(self, key: str, value: Any, *args, **kwargs) -> Any:
         if 'batch' in key:
             return int(value.max()) + 1
@@ -140,7 +139,7 @@ class SimplexData(GraphData):
         mask = self[attribute][:, column_idx] == value
         return mask
 
-    @profile
+    
     def drop_node_by_features(self, nodes_column_idx=-1, nodes_value=0, edges_column_idx=-1, edges_value=0):
         """
         Drops node corresponding to the value in the x and edge_attr. Drops corresponding edge_index, edge_attr,
@@ -247,27 +246,6 @@ class SimplexData(GraphData):
             raise ValueError(f'Invalid dim: {dim}')
 
 
-def get_boundary_and_laplacian(data: SimplexData, device='cpu'):
-    simplices = [(s.tolist(), 0.0) for s in data.edge_index.T]
-    simplices += [([n], 0.0) for n in range(data.num_nodes)]
-
-    hl = HodgeLaplacians(simplices, mode='gudhi', maxdimension=1)
-    B1 = hl.getBoundaryOperator(1)
-    B1 = scipy.sparse.coo_matrix(B1)
-
-    boundary_index = torch.tensor(np.vstack((B1.row, B1.col)), dtype=torch.long, device=device)
-    boundary_weight = torch.tensor(B1.data, dtype=torch.float, device=device)
-
-    L1 = hl.getHodgeLaplacian(1)
-
-    L1 = scipy.sparse.coo_matrix(L1)
-
-    laplacian_index = torch.tensor(np.vstack((L1.row, L1.col)), dtype=torch.long, device=device)
-    laplacian_weight = torch.tensor(L1.data, dtype=torch.float, device=device)
-
-    return boundary_index, boundary_weight, laplacian_index, laplacian_weight
-
-
 def get_boundary(data: SimplexData, device='cpu', weight_idx=None):
     ei = data.edge_index
 
@@ -285,7 +263,7 @@ def get_boundary(data: SimplexData, device='cpu', weight_idx=None):
     return boundary_index, boundary_weight
 
 
-@profile
+
 def get_boundary_and_laplacian_new(data: SimplexData, normalized=True, remove_self_loops=False, device='cpu',
                                    iterative_smoothing_coefficient=None,
                                    release_ends_of_virtual_edges=False,
@@ -316,7 +294,7 @@ def get_boundary_and_laplacian_new(data: SimplexData, normalized=True, remove_se
     return boundary_index, boundary_weight, laplacian_index, laplacian_weight
 
 
-@profile
+
 def get_L_first_option(B1, normalized=True, ):
     B1 = B1.to_dense() if hasattr(B1, 'to_dense') else B1
 
@@ -331,7 +309,7 @@ def get_L_first_option(B1, normalized=True, ):
     return L
 
 
-@profile
+
 def get_L_2(B1, ):
     B1 = B1.to_dense()
 
@@ -354,7 +332,7 @@ def get_L_2_sparse(B1, ):
     return L
 
 
-@profile
+
 def get_L_torch_sparse(boundary_index, boundary_weight, data, B1=None):
     if B1 is None:
         B1 = torch.sparse_coo_tensor(boundary_index, boundary_weight, size=(data.num_nodes, data.num_edges))

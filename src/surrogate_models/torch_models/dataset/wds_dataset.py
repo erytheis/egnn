@@ -7,7 +7,7 @@ from os.path import join
 import numpy as np
 import pandas as pd
 import torch
-from line_profiler_pycharm import profile
+
 from torch import Tensor
 from torch_geometric.data import InMemoryDataset, Data
 from torch_geometric.data.dataset import IndexType
@@ -89,7 +89,7 @@ class WDSGNNDataset(InMemoryDataset, BaseGNNDataset):
         if hasattr(self.transform, 'infer_parameters'):
             self.transform.infer_parameters(self.data)
 
-    @profile
+    
     def __getitem__(
             self,
             idx: Union[int, np.integer, IndexType],
@@ -139,7 +139,7 @@ class WDSGNNDataset(InMemoryDataset, BaseGNNDataset):
     def processed_file_names(self) -> str:
         return 'data.pt'
 
-    @profile
+    
     def get(self, idx: int, *args, **kwargs):
         if not hasattr(self, '_transformed') or self._transformed is None:
             self._transformed = self.len() * [False]
@@ -412,6 +412,16 @@ def read_wds_data(folder,
 
     # construct labels
     y, y_names = None, None
+    if 'graph_attributes' in names:  # Regression problem.
+        raise NotImplementedError
+    elif 'graph_labels' in names:  # Classification problem.
+        raise NotImplementedError
+    elif 'edge_labels' in names:  # Classification problem.
+        raise NotImplementedError
+    elif 'node_labels' in names:
+        y = x.clone()
+        slices['y'] = slices['x'].clone()
+        y_names = x_names
 
     # run tests
     data = GraphData(x=x,

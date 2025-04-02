@@ -59,14 +59,6 @@ def load_datasets(config, device, override_transforms=None, override_pre_transfo
     transforms = config['dataset'].get('transforms', [])
     pre_transforms = config['dataset'].get('pre_transforms', [])
 
-    # # load transforms from memory if resuming
-    # override_transforms, override_pre_transforms = load_transforms_from_memory(config)
-    # if override_transforms is not None and override_pre_transforms is not None:
-    #     # remove combined transforms from loaded
-    #     idx = [i for i, t in enumerate(override_transforms) if isinstance(t, MinMaxNormalize)]
-    #     combined_override_transforms = all_transforms.Compose(override_transforms.pop(idx))
-    #     idx = [i for i, t in enumerate(override_pre_transforms) if isinstance(t, MinMaxNormalize)]
-    #     combined_override_pre_transforms = all_transforms.Compose(override_pre_transforms.pop(idx))
 
     # firstly repack transforms into a single list
     individual_transform = []

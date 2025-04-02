@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 import torch
-from line_profiler_pycharm import profile
+
 from matplotlib import pyplot as plt
 from torch.profiler import tensorboard_trace_handler
 
@@ -10,8 +10,7 @@ import src.surrogate_models.torch_models.visualization.plotter
 from src.surrogate_models.torch_models.dataset.transforms import VirtualNode
 from src.surrogate_models.torch_models.experiments.trainer.base_trainer import BaseTrainer
 from src.surrogate_models.torch_models.model.simplicial.simplicial_conv import attr_to_dim
-from src.surrogate_models.torch_models.model.simplicial.pressure_reconstruction import iterative_shortest_path_distance, \
-    from_flowrates_to_heads
+from src.surrogate_models.torch_models.model.simplicial.pressure_reconstruction import from_flowrates_to_heads
 from src.surrogate_models.torch_models.visualization.plotter import WDSPlotter, plot_prediction_comparison
 from src.utils.torch.torch_utils import MetricTracker
 
@@ -54,7 +53,7 @@ class SimplexTrainer(BaseTrainer):
             writer=self.writer,
             validation=True)
 
-    @profile
+    
     def _train_epoch(self, epoch):
         """
         Training logic for an epoch
@@ -103,7 +102,7 @@ class SimplexTrainer(BaseTrainer):
             self.logger.debug(f'Learning rate: {self.lr_scheduler.get_last_lr()}')
         return log
 
-    @profile
+    
     def _log_training(self, epoch, loss, batch_idx, data, output):
         if self.writer is not None:
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
@@ -139,7 +138,7 @@ class SimplexTrainer(BaseTrainer):
             self._progress(batch_idx),
             loss.item()))
 
-    @profile
+    
     def _log_validation(self, epoch, loss, batch_idx, data, output):
 
         if self.writer is not None:
@@ -189,7 +188,7 @@ class SimplexTrainer(BaseTrainer):
                                               n=mask.sum().item() if mask is not None else 1)
 
 
-    @profile
+    
     def _valid_epoch(self, epoch):
         """
         Validate after training an epoch
@@ -259,7 +258,7 @@ class WDSSimplexTrainer(SimplexTrainer):
         self.reconstruct_pressures = reconstruct_pressures
         self.inverse_transform_train= inverse_transform_train
         self.dataset = kwargs['data_loader'].dataset
-        self.plotter = WDSPlotter(datasets=kwargs['data_loader'].dataset)
+        self.plotter = None
         self.show = show
         self.save = save
 
@@ -321,7 +320,7 @@ class WDSSimplexTrainer(SimplexTrainer):
             self.logger.debug(f'Learning rate: {self.lr_scheduler.get_last_lr()}')
         return log
 
-    @profile
+    
     def _valid_epoch(self, epoch):
         """
         Validate after training an epoch
@@ -356,96 +355,7 @@ class WDSSimplexTrainer(SimplexTrainer):
         return self.valid_metrics.result()
 
     def _plot(self, epoch, data, plotting_func=plot_prediction_comparison):
-
-        if self.plotter is not None and (self.show or self.save):
-            output_ = self.model(data)
-            # skip plotting
-            if epoch % int(self.plot_period) != 0:
-                return
-
-            # get number of virtual nodes
-            virtual = {}
-            if self.virtual_idx is not None:
-                virtual = {key: data[key][:, self.virtual_idx[key]].cpu().numpy() for key in self.virtual_idx.keys()}
-
-            for key in output_.keys():
-                output = output_[key]
-
-                #
-
-                try:
-                    # get first predictions
-                    tiled_predictions = output.T.cpu().numpy()
-                    tiled_true = data[f'{self.simplex_names[key]}_y'].unsqueeze(0).cpu().numpy()
-
-                    if self.virtual_idx is not None:
-                        tiled_predictions = tiled_predictions[:, virtual[key]==0]
-                        tiled_true = tiled_true[:, virtual[key]==0]
-
-                    # Plot an image for logging
-                    log_plot = plotting_func(tiled_predictions,
-                                             tiled_true,
-                                             )
-                    # plot MAD
-                    network_plot = self.plotter.plot_network(np.abs(tiled_predictions - tiled_true), data.wds_names,
-                                                             )
-
-                    # feature evolution plot
-                    if hasattr(self.model, 'get_inspector') and 'layer_inspection' in self.writer.tables:
-                        inspector = self.model.get_inspector(attr_to_dim[key])
-                        features = [
-                            src.surrogate_models.torch_models.visualization.plotter.plot_evolution_of_features(k) for k in inspector.functions_to_plot]
-                        # add to the writer
-                        self.writer.add_row(
-                            'layer_inspection',
-                            epoch,
-                            f"Feature evolution {data.wds_names}",
-                            *[self.writer.image(f) for f in features])
-
-                    if hasattr(self, 'writer') and self.writer is not None:
-                        self.writer.add_row(
-
-                            str(self.plotter),
-                            epoch,
-                            f"Random Sample {data.wds_names}",
-                            self.writer.image(log_plot),
-                            self.writer.image(network_plot) if network_plot is not None else None,
-                            None
-                        )
-                        # self.writer.save_table()
-
-                    if self.show:
-                        plt.show()
-                    if self.save:
-                        plt.savefig(f'{self.config.log_dir}/{key}_epoch_{epoch}-network_{data.wds_names}.png')
-                    plt.close('all')
-                except ValueError as e:
-                    print(e)
-            return
-            # # Secondly, plot the worst prediction
-            # # First plot random prediction
-            # tiled_predictions, tiled_true, idx = get_worst_prediction_in_batch(
-            #     data.cpu(),
-            #     output.cpu(),
-            #     # size_n=2
-            # )
-            # # Plot an image for logging
-            # log_plot = plotting_func(tiled_predictions,
-            #                          tiled_true, batch=data, idx=idx)
-            # # plot MAD
-            # network_plot = self.plotter.plot_network(np.abs(tiled_predictions - tiled_true), data[idx].wds_names)
-            #
-            # if network_plot is None:
-            #     return plt.close('all')
-            #
-            # if self.writer is not None:
-            #     self.writer.add_row(
-            #         epoch,
-            #         "Worst Sample",
-            #         self.writer.image(log_plot),
-            #         self.writer.image(network_plot),
-            #         None
-            #     )
+        return
 
 
 class SimplexProfiler(SimplexTrainer):

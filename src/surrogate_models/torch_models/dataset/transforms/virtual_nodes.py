@@ -6,7 +6,7 @@ from torch import Tensor
 from torch_geometric.data import Data, HeteroData
 
 from src.surrogate_models.torch_models.dataset.transforms.base import BaseTransform
-from line_profiler_pycharm import profile
+
 
 from src.utils.torch.torch_utils import to_undirected
 
@@ -77,7 +77,7 @@ class VirtualNode(torch_geometric.transforms.VirtualNode, BaseTransform):
             self.keys = keys
         BaseTransform.__init__(self, )
 
-    @profile
+    
     def forward(self, data):
 
         r"""Appends a virtual node to the given homogeneous graph that is connected
@@ -198,7 +198,7 @@ class VirtualSink(VirtualNode):
         self.mask_reservoir_values = mask_reservoir_values
         self.reservoir_idx = None
 
-    @profile
+    
     def forward(self, data: Data, inverse=False) -> Data:
         # Add a virtual edge from each node to new virtual nodes, adding demand value to a virtual edge attribute
         # Node features are translated to edge features, number of new edges is equal to number of nodes

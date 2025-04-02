@@ -20,7 +20,7 @@ arch:
       hidden_channels: 20
       in_channels: 3
       out_channels: 1
-    num_layers: 22
+    num_layers: 26
   type: SimplicialCN
 
 dataset:
@@ -37,7 +37,7 @@ dataset:
     type: HazenWilliamsWeights
   subsets:
   - args:
-      root: saved/simulations/wntr/l-town/experiment_3.2A
+      root: saved/simulations/wntr/zj/experiment_3.2B
     type: WDSGNNDataset
   transforms:
   - args:
@@ -63,7 +63,7 @@ dataset:
 # data loader config
 loader:
   args:
-    batch_size: 1000
+    batch_size: 250
     num_workers: 0
     shuffle: false
     test_split: 0.1
@@ -96,7 +96,7 @@ trainer:
     cache_clear_period: 50
     early_stop: 5000
     epochs: 140000
-    clip: 0.01
+#    clip: 0.01
     monitor: min val/loss
 #    plot_period: 500
 #    inverse_transform: True

@@ -100,7 +100,7 @@ class BaseTrainer(BaseTorchExperiment):
         """
         raise NotImplementedError
 
-    # @profile
+    # 
     def run(self):
         """
         Full training logic

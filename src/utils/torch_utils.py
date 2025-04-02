@@ -1,6 +1,5 @@
 import json
 from typing import Optional, List, Iterable
-# from prettytable import PrettyTable
 import numpy as np
 import scipy.sparse as sp
 
@@ -10,8 +9,7 @@ from pathlib import Path
 from itertools import repeat
 from collections import OrderedDict
 
-from line_profiler_pycharm import profile
-from prettytable import PrettyTable
+
 from torch import Tensor
 from torch_geometric.utils import add_remaining_self_loops
 from torch_geometric.utils.num_nodes import maybe_num_nodes
@@ -19,7 +17,7 @@ from torch_scatter import scatter_add
 from torch_scatter import scatter, segment_csr, gather_csr
 
 from src.utils.utils import Iterator
-from src.surrogate_models.torch_models.visualization.writer.writers import BaseWriter
+# from src.surrogate_models.torch_models.visualization.writer.writers import BaseWriter
 
 
 def ensure_dir(dirname):
@@ -58,7 +56,8 @@ def prepare_device(n_gpu_use, device_name='cuda:0'):
 
 
 class MetricTracker:
-    def __init__(self, *keys: object, writer: Optional[BaseWriter] = None, filterby: Optional[List[str]] = None,
+    def __init__(self, *keys: object,
+                 writer= None, filterby: Optional[List[str]] = None,
                  validation: object = False) -> object:
         self.writer = writer
         self.validation = validation
@@ -89,18 +88,6 @@ class MetricTracker:
         return dict(self._data.average)
 
 
-def count_parameters(model, print_architecture=False):
-    table = PrettyTable(["Modules", "Parameters"])
-    total_params = 0
-    for name, parameter in model.named_parameters():
-        if not parameter.requires_grad: continue
-        params = parameter.numel()
-        table.add_row([name, params])
-        total_params += params
-    if print_architecture:
-        print(table)
-    print(f"Total Trainable Params: {total_params}")
-    return total_params
 
 
 def fully_adjacent():
@@ -304,7 +291,7 @@ def slice_torch_sparse_coo_tensor(t, args):
     return torch.sparse_coo_tensor(indices, values, device=t.device).coalesce()
 
 
-@profile
+
 def slice_torch_sparse_coo_tensor(indices, values, sizes, args):
     """
     params:

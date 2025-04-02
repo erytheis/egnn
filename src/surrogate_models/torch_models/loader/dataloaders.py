@@ -10,7 +10,7 @@ from collections import abc as container_abcs
 from src.surrogate_models.torch_models.base.base_dataloader import Collater
 from src.surrogate_models.torch_models.loader.base_dataloader import BaseGNNDataLoader, BaseDataLoader, OLDDataLoader
 
-# from line_profiler_pycharm import profile
+# 
 
 int_classes = int
 

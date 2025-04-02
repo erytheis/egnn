@@ -4,7 +4,7 @@ from typing import Callable, List
 
 import torch
 import torch.nn.functional as F
-from line_profiler_pycharm import profile
+
 from torch import Tensor, nn
 from torch_scatter import scatter
 from torch_sparse import SparseTensor
@@ -59,7 +59,7 @@ class MSELoss(BaseLoss):
     def forward(self, output, batch):
         output = output['x'] if 'x' in output else output['edge_attr']
 
-        if 'node_y' in batch.keys:
+        if 'node_y' in batch.keys():
             target = batch.node_y.view(output.shape)
         else:
             target = batch.y.view(output.shape)
@@ -107,7 +107,7 @@ class EdgeMSELoss(BaseLoss):
 
         if hasattr(batch, 'cochains'):
             target = batch.cochains[1].y.view(output[1].shape)
-        elif 'edge_y' in batch.keys:
+        elif 'edge_y' in batch.keys():
             target = batch.edge_y.view(output.shape)
         else:
             target = batch.y.view(output.shape)
@@ -344,7 +344,7 @@ class IntermediatePredictionLoss(BaseLoss):
     def forward(self, output, batch):
         output = output[self.key]
 
-        y = batch.node_y if 'node_y' in batch.keys else batch.y
+        y = batch.node_y if 'node_y' in batch.keys() else batch.y
         target = y.unsqueeze(-1).repeat((1, output.shape[1])).unsqueeze(-1)
         layers = target.shape[1]
 
@@ -386,7 +386,7 @@ class HarmonicFlowSmoothing(BaseLoss):
 
         super().__init__(weight, **kwargs)
 
-    @profile
+    
     def forward(self, output, batch, **kwargs):
 
         loss_coefficient = torch.abs(batch.edge_attr[:, self.loss_coefficient_index])
@@ -420,7 +420,7 @@ class HarmonicFlowSmoothing(BaseLoss):
             x = self.get_flowrates_from_nodal_heads(batch, heads, loss_coefficient)
 
             # run checks
-            y = batch.node_y if 'node_y' in batch.keys else batch.y
+            y = batch.node_y if 'node_y' in batch.keys() else batch.y
             heads = y.unsqueeze(-1).unsqueeze(-1)
             # heads = self.inverse_transform_heads(heads)
             output_ = self.get_flowrates_from_nodal_heads(batch, heads, loss_coefficient)
@@ -481,7 +481,7 @@ class HarmonicFlowSmoothing(BaseLoss):
 
         return error.mean()
 
-    @profile
+    
     def get_flowrates_from_nodal_heads(self, batch, heads, loss_coefficient):
         head_loss_x = get_headloss_from_nodes(batch, heads)
         flowrate_x = (head_loss_x / loss_coefficient.view(-1, 1, 1))
@@ -537,7 +537,7 @@ class HarmonicFlowSmoothingGather(HarmonicFlowSmoothing):
 
 class HarmonicFlowSmoothingDense(torch.nn.Module):
 
-    # @profile
+    # 
     def forward(self, output, batch, **kwargs):
         output = output['edge_attr'] if 'edge_attr' in output else output
 
@@ -621,7 +621,7 @@ class CompositeLoss(Loss):
         return CompositeLoss([loss * other for loss in self.loss])
 
 
-@profile
+
 def get_headloss_from_nodes(batch, heads):
     # get headloss from labels
     from_nodes = batch.edge_index[0]

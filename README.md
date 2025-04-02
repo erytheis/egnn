@@ -20,7 +20,7 @@ edge-based graph neural networks_ by  Bulat Kerimov, Riccardo Taormina, and Fran
    ```
 2. **Download the generated simulations**
    
-   Download the foulder from [Google drive](https://drive.google.com/drive/folders/1VInz_m5JkcWan7le3SPiDziyisvI5PPa?usp=sharing) and save in the project directory
+   Download the foulder from [Google drive](https://drive.google.com/drive/folders/1VInz_m5JkcWan7le3SPiDziyisvI5PPa?usp=sharing) and save in the project directory inside ```saved```
    
 
 3. **Set up a Python environment** (conda or venv recommended):

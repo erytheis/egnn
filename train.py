@@ -1,4 +1,3 @@
-import matplotlib
 import torch
 
 import src.surrogate_models.torch_models.experiments as trainers

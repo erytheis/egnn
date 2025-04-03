@@ -97,7 +97,7 @@ trainer:
     cache_clear_period: 50
     early_stop: 5000
     epochs: 140000
-#    clip: 0.01
+    clip: 0.01
     monitor: min val/loss
 #    plot_period: 500
 #    inverse_transform: True
